@@ -6,6 +6,34 @@
   <%= javascript_include_tag "application", "data-turbolinks-track" => true %>
   <%= csrf_meta_tags %>
 </head>
+
+<script src="http://vk.com/js/api/xd_connection.js?2"  type="text/javascript">
+</script>
+
+<script type="text/javascript"> 
+  VK.init(function() { 
+    get_name();
+  }, function() { 
+     // API initialization failed 
+     // Can reload page here 
+  }, '5.0'); 
+
+  function get_name() {
+    console.log('debug: get_name');
+    // VK.api("users.get", {uids:"1", fields:"first_name, last_name"}, function(data) { 
+    //     console.log('debu: get_name done');
+    //     console.log('debu: '+data.type);
+    // });
+
+    VK.api("isAppUser", {uid:"1"}, function(data) { 
+        console.log('debu: get_name done');
+        console.log(data.error);
+
+    });
+  }
+
+</script>
+
 <body>
 
 <%= yield %>
