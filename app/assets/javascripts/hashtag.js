@@ -21,36 +21,65 @@
       }
     )
   }  
+  var allFeedItems = [];
 
   function create_hashtag_top() {
-    console.log('hello from func');
-    var feed = get_user_feed();
-    // var top_hashtag = parse( feed );
+    var feed = getUserFeed();
     // show( top_hashtag );
     return "Hashtags has shown";
   }
 
-  function get_user_feed() {
+  function getUserFeed() {
+    console.log( 'start get feed' );
+
+    var count = 0;
+    var counterPartsFeed = 1;
+
     VK.api(
       "newsfeed.get", 
-      { start_time: 1376870400 }, 
-      function(data) { 
-        console.log( 'start get feed' );
-        if (data.response) { 
-         // data.response is object 
-         console.debug( data.response );         
-        } 
-        else {
-         console.error( data.error );         
+      { count: 100, start_time: 1376837770 }, 
+      get_part_feed
+    );
+
+    function get_part_feed( data ) {
+      console.log( ' discover part feed :' + counterPartsFeed );
+      if (data.response) { 
+        if ( data.response.items.length>0 ) {
+          console.debug( data.response );
+          counterPartsFeed++;
+          allFeedItems = allFeedItems.concat( data.response.items )
+          console.info( allFeedItems );
+          VK.api(
+          "newsfeed.get", 
+          { count: 100, offset: data.response.new_offset, start_time: 1376837770 }, 
+          get_part_feed
+          );
         }
+        else{
+          console.log( 'End requests.' );
+          parseFeed( allFeedItems );
+        }
+      } 
+      else {
+       console.error( "Error respond:" + data.error );
+       window.alert( 'There is some error when respond. See console.' );
       }
-    )
+    }
     return [];
   }
 
-  // function parse( feed ){
-  //   return 'Ary hashtags';
-  // }
+  function parseFeed( feed ){
+    console.log( 'In parse.' )
+    console.log( allFeedItems )
+    z=document.createElement('textarea')
+    z.rows = 10;
+    z.cols = 40;
+    z.textContent = JSON.stringify( allFeedItems );
+    k=document.getElementsByTagName('p')[0];
+    k.appendChild( z );
+    console.log( k, z );
+    return 'Ary hashtags';
+  }
 
   // function show( hashtags ) {
   //   $('#out').text( hashtags );
