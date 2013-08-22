@@ -76,24 +76,65 @@
     // console.debug( feed[0].toString() );
     // console.debug( feed[0][1] instanceof Object );
     // feed.forEach( function(x){ console.debug( x ) } );
-    
-    console.debug( feed[0] );
-    console.info( 'Follow lenght:' )
-
-    // for( i=0; i<feed[0].length; i++ ){
     //   console.debug( feed[0][i] );
     // }
-    for( p in feed[0] ){
-      console.debug( p );
-    }
-    
-    for( x=0; x<100; x++) { 
-      console.debug( feed[x].attachments )  
-    };
+    // for( p in feed[0] ){
+    //   console.debug( p );
+    // }
     
     // console.debug( feed );
-    // console.debug( feed[1] );
+    // console.debug( feed[0] );
+    
+    // feed.forEach( 
+    //   function( x ) { 
+    //     if ( x.date == 1376931089 ) con( x);
+    //   } 
+    // );
+
+//grep
+    // console.log ( jQuery.grep({ foo: 'bar', baz: 'qux'}, 
+                                // function( x ){ return x  }) 
+                // );
+    feed.forEach( 
+      function( x ) { 
+        if ( x.date == 1376931089 ) { 
+          con( x );
+          parseFeedItem( x );
+        };
+      } 
+    );
     return feed;
+  }
+
+  function parseFeedItem( item ){
+    for( p in item ){
+      // con( item[p] );
+      if ( item[p] instanceof Object){
+        parseFeedItem( item[p] )
+      }
+      else {
+        con( get_hashtags( item[p] ) );
+      }
+    } 
+  }
+
+  /*test string*/
+  // var str = 'Hi  #ken #sdHello World #omsk Good #my #Denis- #Де_нисQross buy #ved` ';
+  function get_hashtags( str ) {    
+    var reg = /\B(#[\w\u0400-\u04FF]{2,})\s/g;
+    str = ' '+str+' ';
+    var ary = reg.exec( str )
+    var hashs = [];
+    while( ary != null ){
+      hashs.push( ary[1] );
+      reg.lastIndex--;
+      ary = reg.exec( str );
+    }
+    return hashs;
+  }
+
+  function con( val ){
+    console.debug( val );
   }
 
   // function show( hashtags ) {
