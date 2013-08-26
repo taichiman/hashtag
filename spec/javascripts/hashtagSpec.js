@@ -1,7 +1,9 @@
 describe("Feed parsing", function() { 
   it("Get all hashtags from property. get_hashtags().", function() {
-    str = 'Hi  #ken #sdHello World #omsk Good #my #Denis- #Де_нисQross buy #ved` ';
-    var strJson = {'#ken': { count: 1 },'#sdHello': { count: 1 },'#omsk': { count: 1 },'#my': { count: 1 },'#Де_нисQross': { count: 1 }};
+    // str = 'Hi  #ken #sdHello World #omsk Good #my #Denis- #Де_нисQross buy #ved` ';
+    // var strJson = {'#ken': { count: 1 },'#sdHello': { count: 1 },'#omsk': { count: 1 },'#my': { count: 1 },'#Де_нисQross': { count: 1 }};
+    str = 'Hi  #ken #sdHello World #omsk Good #my #Denis- #Де_нисQross buy #authenticfolk, #ved` ';
+    var strJson = {'#ken': { count: 1 },'#sdHello': { count: 1 },'#omsk': { count: 1 },'#my': { count: 1 },'#Де_нисQross': { count: 1 }, '#authenticfolk': { count: 1 }};
     expect( JSON.stringify( get_hashtags( str ) ) ).toBe(JSON.stringify( strJson ));
   });
 

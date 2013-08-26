@@ -1,6 +1,16 @@
   var allFeedItems = [];
   var allHashTags = {};
-
+  var arrayHashtagsSorted = [];
+  var countPostWithHashtags = {};
+  /*debug*/
+  //show all feed items in console
+  var debug_SHOW_ALL_POSTS = true;
+  //create json <textarea> with all feed items
+  var debug_CREATE_JSON = false;
+  var debug_START_TIME = ''; //'1376587824';
+  var debug_END_TIME = ''; //1377507611';
+  /*debug*/
+  
   start();
 
   function start() {
@@ -34,7 +44,7 @@
 
     VK.api(
       "newsfeed.get", 
-      { filters: filters, max_photos: 1, count: 100 /*, start_time: 1376837769, end_time: 1377000273 */}, 
+      { filters: filters, max_photos: 1, count: 100, start_time: debug_START_TIME, end_time: debug_END_TIME }, 
       get_part_feed
     );
 
@@ -48,7 +58,7 @@
           // console.info( allFeedItems );
           VK.api(
           "newsfeed.get", 
-          { filters: filters, max_photos: 1, count: 100, offset: data.response.new_offset /*, start_time: 1376837769, end_time: 1377000273 */}, 
+          { filters: filters, max_photos: 1, count: 100, offset: data.response.new_offset, start_time: debug_START_TIME, end_time: debug_END_TIME }, 
           get_part_feed
           );
         }
@@ -71,25 +81,34 @@
     feed.forEach( 
       function( x ) { 
         // if ( x.date == 1376931089 ) { 
-        // if ( x.date == 1376908231 ) { не находит
-          // con( x );
+          if (debug_SHOW_ALL_POSTS == true) { 
+            con ( x ); 
+          }
+          if ( debug_CREATE_JSON ) { debug_create_json( x ) };
+
           parseFeedItem( x );
         // };
       } 
     );
     con( allHashTags );
+    con( allFeedItems );
+    con( countPostWithHashtags );
     return feed;
   }
 
   function parseFeedItem( item ){
     
     for( p in item ){
-      if ( item[p] instanceof Object){
+      if ( item[p] instanceof Object){ //nested obj in property
         parseFeedItem( item[p] )
       }
       else {
         propertyHashtags = get_hashtags( item[p] );
-        addHashtags( allHashTags, propertyHashtags )
+        addHashtags( allHashTags, propertyHashtags );
+        
+        if ( Object.keys( propertyHashtags ).length != 0 ) {
+          countPostWithHashtags[ item.date + '_' + item.source_id ]=''; // generate item keys, to rescue if are many hashtags in one feed item
+        }
       }
     }
     return null;
@@ -98,7 +117,8 @@
   /*Get hashtags from property.*/
   function get_hashtags( str ) {    
     var hashtags_obj = {};
-    var reg = /\B(#[\w\u0400-\u04FF@]{2,})\s/g;
+    //TODO more precise regex later
+    var reg = /\B(#[\w\u0400-\u04FF@]{2,})[\s,]/g;
     str = ' '+str+' ';
     var ary = reg.exec( str );
     while( ary != null ){
@@ -108,7 +128,7 @@
     }
     return hashtags_obj;
   }
-  /*Add hashtags object*/
+  /*Add many hashtags to obj */
   function addHashtags( obj, hashtags ){
     for ( h in hashtags ){
       for( i=1; i<=hashtags[h].count; i++ ){
@@ -140,5 +160,30 @@
   }
 
   function showFeedHashtags() {
-    $('#response').append("<br><textarea cols= 40 rows=30>"+JSON.stringify(allHashTags)+"</textarea>" );
+    
+    $('#response').append("<div>Постов было всего: "+ allFeedItems.length +"</div><div>Постов c хештегами: "+ Object.keys( countPostWithHashtags ).length +"</div>");
+    
+    $('#response').append("<br><textarea cols= 60 rows=20></textarea>" );
+    var el = $('#response>textarea');    
+    for ( p in allHashTags ) {
+        c = allHashTags[p].count
+        arrayHashtagsSorted.push( [c, p] );
+    }
+    arrayHashtagsSorted.sort( function( a, b ){ return (b[0] - a[0]); } );
+    con( arrayHashtagsSorted );
+    arrayHashtagsSorted.forEach( 
+      function( v, i) {
+        el.append( i+1+'. '+v[1]+' '+v[0]+'\n' );
+      }
+    );
+
   }
+  
+/*debug functions*/
+  function debug_create_json( x ){
+    if ( $('#json').length == 0 ) { 
+      $('#response').prepend("<br><textarea id=json cols= 10 rows=10></textarea>")
+    }
+    $("#json").append( JSON.stringify( x ) );
+  }
+/*debug functions*/
