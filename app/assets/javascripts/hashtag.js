@@ -26,18 +26,21 @@
   }
 
   function create_hashtag_top(){
+    var filters = 'post, photo, photo_tag, note'
     con( 'start get feed' );
     
     VK.api("execute", {  
     code:
-    "var response = API.newsfeed.get({count:100}); \
+    "var response = API.newsfeed.get({count:100, filters:\"" + filters +"\", max_photos: 1}); \
 var all_items = [response.items];\
 var offset = response.new_offset;\
+var from = response.new_from;\
 \
 while ( response.items.length>0 ){ \
-  response = API.newsfeed.get({count:100, offset: offset}); \
+  response = API.newsfeed.get({count:100, filters:\"" + filters +"\",  max_photos: 1, offset: offset, from: from}); \
   all_items = all_items + [ response.items ]; \
   offset = response.new_offset; \
+  from = response.new_from;\
 } \
 \
 return all_items;"
