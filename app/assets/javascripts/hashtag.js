@@ -7,39 +7,68 @@
   var debug_SHOW_ALL_POSTS = true;
   //create json <textarea> with all feed items
   var debug_CREATE_JSON = false;
+  var debug_LOG_TO_CONSOLE = false;
   var debug_START_TIME = ''; //'1376587824';
   var debug_END_TIME = ''; //1377507611';
   /*debug*/
-  
+
   start();
 
   function start() {
     VK.init(
       function() { 
-        display_name();
         create_hashtag_top();    
       }, 
+      // TODO: reload_page
       function() {},
       '5.0'
     )
   }
 
-  function display_name() {
-    VK.api(
-      "users.get", 
-      {fields:"first_name, last_name", test_mode:"1"}, 
-      function(data) { 
-        var first_name = document.getElementById('response');
-        first_name.textContent = "Привет, "+data.response[0].first_name + ', '+ data.response[0].last_name;
+  function create_hashtag_top(){
+    con( 'start get feed' );
+    
+    VK.api("execute", {  
+    code:
+    "var response = API.newsfeed.get({count:100}); \
+var all_items = [response.items];\
+var offset = response.new_offset;\
+\
+while ( response.items.length>0 ){ \
+  response = API.newsfeed.get({count:100, offset: offset}); \
+  all_items = all_items + [ response.items ]; \
+  offset = response.new_offset; \
+} \
+\
+return all_items;"
+     }, generate_array_allFeedItems );
+
+    function generate_array_allFeedItems( data ){
+      con('In generate..');
+      
+      if (data.response) {
+        con('Items received.');
+        con( data.response );
+        data.response.forEach( function( x ){
+          allFeedItems = allFeedItems.concat( x )
+        });        
+        con( allFeedItems );
+        parseFeed( allFeedItems );
+        showFeedHashtags();
       }
-    )
-  }  
+      else {
+       console.error( "Error respond:" + data.error );
+       window.alert( 'There is some error when respond. See console.' );
+      }
+    }
 
-  function create_hashtag_top() {
-    console.log( 'start get feed' );
+    return [];
+  }
 
-    var count = 0;
-    var counterPartsFeed = 1;
+  /* non-optimized version */
+/*  function _slow_version_create_hashtag_top() {
+    con( 'start get feed' );
+
     var filters = 'post, photo, photo_tag, note'
 
     VK.api(
@@ -49,13 +78,9 @@
     );
 
     function get_part_feed( data ) {
-      // console.log( ' discover part feed :' + counterPartsFeed );
       if (data.response) { 
         if ( data.response.items.length>0 ) {
-          // console.debug( data.response );
-          counterPartsFeed++;
           allFeedItems = allFeedItems.concat( data.response.items )
-          // console.info( allFeedItems );
           VK.api(
           "newsfeed.get", 
           { filters: filters, max_photos: 1, count: 100, offset: data.response.new_offset, start_time: debug_START_TIME, end_time: debug_END_TIME }, 
@@ -63,7 +88,6 @@
           );
         }
         else{
-          // console.log( 'End requests.' );
           parseFeed( allFeedItems );
           showFeedHashtags();
         }
@@ -74,10 +98,10 @@
       }
     }
     return [];
-  }
+  }*/
 
   function parseFeed( feed ){
-    console.debug( 'In parse.' );
+    con( 'Start parse.' );
     feed.forEach( 
       function( x ) { 
         // if ( x.date == 1376931089 ) { 
@@ -156,7 +180,7 @@
   }
 
   function con( val ){
-    console.debug( val );
+    if ( debug_LOG_TO_CONSOLE ) console.debug( val );
   }
 
   function showFeedHashtags() {
@@ -176,7 +200,6 @@
         el.append( i+1+'. '+v[1]+' '+v[0]+'\n' );
       }
     );
-
   }
   
 /*debug functions*/
