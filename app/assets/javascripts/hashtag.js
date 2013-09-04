@@ -1,6 +1,8 @@
+  var appUserId;
+  var appUserTimeZone;
   var allFeedItems = [];
   var allHashTags = {};
-  var arrayHashtagsSorted = [];
+  // var arrayHashtagsSorted = [];
   var countPostWithHashtags = {};
   /*debug*/
   //show all feed items in console
@@ -12,17 +14,33 @@
   var debug_END_TIME = ''; //1377507611';
   /*debug*/
 
+//   startInit();
+// function startInit(){
+//   var hashtags = getHashtagsFromServer();
+// }
+
   start();
 
   function start() {
     VK.init(
       function() { 
-        create_hashtag_top();    
+        getUserId();
+        // create_hashtag_top();    
       }, 
       // TODO: reload_page
       function() {},
       '5.0'
     )
+  }
+
+  function getUserId(){
+    VK.api("users.get", { fields: 'timezone'}, 
+      function(data){ 
+        appUserId = data.response[0].id;
+        appUserTimeZone = data.response[0].timezone;
+        getHashtagsFromServerAndShow();
+      }
+    );
   }
 
   function create_hashtag_top(){
@@ -57,7 +75,10 @@ return all_items;"
         });        
         con( allFeedItems );
         parseFeed( allFeedItems );
-        showFeedHashtags();
+        showFeedHashtags( 
+          allFeedItems.length, 
+          Object.keys( countPostWithHashtags ).length  
+        );
       }
       else {
        console.error( "Error respond:" + data.error );
@@ -67,41 +88,6 @@ return all_items;"
 
     return [];
   }
-
-  /* non-optimized version */
-/*  function _slow_version_create_hashtag_top() {
-    con( 'start get feed' );
-
-    var filters = 'post, photo, photo_tag, note'
-
-    VK.api(
-      "newsfeed.get", 
-      { filters: filters, max_photos: 1, count: 100, start_time: debug_START_TIME, end_time: debug_END_TIME }, 
-      get_part_feed
-    );
-
-    function get_part_feed( data ) {
-      if (data.response) { 
-        if ( data.response.items.length>0 ) {
-          allFeedItems = allFeedItems.concat( data.response.items )
-          VK.api(
-          "newsfeed.get", 
-          { filters: filters, max_photos: 1, count: 100, offset: data.response.new_offset, start_time: debug_START_TIME, end_time: debug_END_TIME }, 
-          get_part_feed
-          );
-        }
-        else{
-          parseFeed( allFeedItems );
-          showFeedHashtags();
-        }
-      } 
-      else {
-       console.error( "Error respond:" + data.error );
-       window.alert( 'There is some error when respond. See console.' );
-      }
-    }
-    return [];
-  }*/
 
   function parseFeed( feed ){
     con( 'Start parse.' );
@@ -186,24 +172,64 @@ return all_items;"
     if ( debug_LOG_TO_CONSOLE ) console.debug( val );
   }
 
-  function showFeedHashtags() {
-    
-    $('#response').append("<div>Постов было всего: "+ allFeedItems.length +"</div><div>Постов c хештегами: "+ Object.keys( countPostWithHashtags ).length +"</div>");
-    
-    $('#response').append("<br><textarea cols= 60 rows=20></textarea>" );
-    var el = $('#response>textarea');    
+  function createHashtagsTop(){
+    var arrayHashtagsSorted = [];
     for ( p in allHashTags ) {
-        c = allHashTags[p].count
-        arrayHashtagsSorted.push( [c, p] );
+      c = allHashTags[p].count
+      arrayHashtagsSorted.push( [c, p] );
     }
     arrayHashtagsSorted.sort( function( a, b ){ return (b[0] - a[0]); } );
+    return arrayHashtagsSorted;
+  }
+
+  function showFeedHashtags( countAllFeedItems, _countPostWithHashtags, arrayHashtagsSorted ) {
+    
+    $('#response').append("<div>Постов было всего: "+ countAllFeedItems +
+      "</div><div>Постов c хештегами: "+ 
+      _countPostWithHashtags +"</div>");
+    
+    $('#response').append("<br><textarea cols= 60 rows=10></textarea>" );
+    var el = $('#response>textarea');    
+    
+    if ( arrayHashtagsSorted === undefined ) { // sort for create hashtag top
+      arrayHashtagsSorted = createHashtagsTop();
+    }
+
     con( arrayHashtagsSorted );
     arrayHashtagsSorted.forEach( 
       function( v, i) {
         el.append( i+1+'. '+v[1]+' '+v[0]+'\n' );
       }
     );
+
+    putHashtagsToServer(
+      { 
+        uid: appUserId,
+        timezone: appUserTimeZone,
+        countAllFeedItems: countAllFeedItems, 
+        countPostWithHashtags: _countPostWithHashtags,
+        hashtags: JSON.stringify( arrayHashtagsSorted )
+      }
+    );
   }
+
+  // function showFeedHashtags( countAllFeedItems, countPostWithHashtags, arrayHashtagsSorted ) { 
+  //   $('#response').append("<div>Постов было всего: "+ allFeedItems.length +"</div><div>Постов c хештегами: "+ Object.keys( countPostWithHashtags ).length +"</div>");
+    
+  //   $('#response').append("<br><textarea cols= 60 rows=10></textarea>" );
+  //   var el = $('#response>textarea');    
+  //   for ( p in allHashTags ) {
+  //       c = allHashTags[p].count
+  //       arrayHashtagsSorted.push( [c, p] );
+  //   }
+  //   arrayHashtagsSorted.sort( function( a, b ){ return (b[0] - a[0]); } );
+  //   con( arrayHashtagsSorted );
+  //   arrayHashtagsSorted.forEach( 
+  //     function( v, i) {
+  //       el.append( i+1+'. '+v[1]+' '+v[0]+'\n' );
+  //     }
+  //   );
+  // }
   
 /*debug functions*/
   function debug_create_json( x ){
