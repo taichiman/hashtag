@@ -9,13 +9,17 @@ class DashController < ApplicationController
 
   def show    
     r = Hashtag.last_hashtags( params[ :uid ] )
-    render json: { 
-                  uid: r.uid, 
-                  timezone: r.timezone,
-                  count_posts: r.count_posts,
-                  count_posts_with_hashtag: r.count_posts_with_hashtag,
-                  hashtags: r.hashtags
-                 }
+    if r!=[]
+      render json: { 
+                    uid: r.uid, 
+                    timezone: r.timezone,
+                    count_posts: r.count_posts,
+                    count_posts_with_hashtag: r.count_posts_with_hashtag,
+                    hashtags: r.hashtags
+                   }
+    else
+      render json: { result: false }
+    end
   end
 
   # save hashtags from client to db

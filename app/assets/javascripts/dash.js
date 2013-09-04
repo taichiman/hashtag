@@ -10,7 +10,12 @@ function getHashtagsFromServerAndShow(){
           }
         ).done( 
     function( r ) {
-      showFeedHashtags( r.count_posts, r.count_posts_with_hashtag, JSON.parse( r.hashtags ));
+      if( r.result != false){
+        showFeedHashtags( r.count_posts, r.count_posts_with_hashtag, JSON.parse( r.hashtags ));
+      }
+      else{
+        create_hashtag_top();
+      }        
     }
   );
 };
