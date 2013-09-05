@@ -220,6 +220,9 @@ return [ all_items, time, timezone ];"
       }
     );
 
+
+    $('#response').append("<div><input onclick='create_hashtag_top();' type=button value='Обновить'></div>");
+
     putHashtagsToServer(
       { 
         uid: appUserId,
@@ -231,24 +234,6 @@ return [ all_items, time, timezone ];"
       }
     );
   }
-
-  // function showFeedHashtags( countAllFeedItems, countPostWithHashtags, arrayHashtagsSorted ) { 
-  //   $('#response').append("<div>Постов было всего: "+ allFeedItems.length +"</div><div>Постов c хештегами: "+ Object.keys( countPostWithHashtags ).length +"</div>");
-    
-  //   $('#response').append("<br><textarea cols= 60 rows=10></textarea>" );
-  //   var el = $('#response>textarea');    
-  //   for ( p in allHashTags ) {
-  //       c = allHashTags[p].count
-  //       arrayHashtagsSorted.push( [c, p] );
-  //   }
-  //   arrayHashtagsSorted.sort( function( a, b ){ return (b[0] - a[0]); } );
-  //   con( arrayHashtagsSorted );
-  //   arrayHashtagsSorted.forEach( 
-  //     function( v, i) {
-  //       el.append( i+1+'. '+v[1]+' '+v[0]+'\n' );
-  //     }
-  //   );
-  // }
   
 /*debug functions*/
   function debug_create_json( x ){
