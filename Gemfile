@@ -49,3 +49,5 @@ end
 gem 'rails_12factor', group: :production
 
 gem "jasmine", "2.0.0.rc2", group: [ :development, :test]
+
+gem 'awesome_print', group: :development

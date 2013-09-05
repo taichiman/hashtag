@@ -11,7 +11,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20130904123804) do
+ActiveRecord::Schema.define(version: 20130905074402) do
 
   create_table "hashtags", force: true do |t|
     t.text     "hashtags"
@@ -21,6 +21,7 @@ ActiveRecord::Schema.define(version: 20130904123804) do
     t.integer  "count_posts"
     t.integer  "count_posts_with_hashtag"
     t.integer  "timezone"
+    t.integer  "time"
   end
 
 end

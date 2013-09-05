@@ -1,3 +1,4 @@
+  var timeLastHashtagsRequest= {};
   var appUserId;
   var appUserTimeZone;
   var allFeedItems = [];
@@ -25,7 +26,7 @@
     VK.init(
       function() { 
         getUserId();
-        // create_hashtag_top();    
+        // create_hashtag_top();
       }, 
       // TODO: reload_page
       function() {},
@@ -33,6 +34,7 @@
     )
   }
 
+ // TODO timezone - no need in this application
   function getUserId(){
     VK.api("users.get", { fields: 'timezone'}, 
       function(data){ 
@@ -49,7 +51,10 @@
     
     VK.api("execute", {  
     code:
-    "var response = API.newsfeed.get({count:100, filters:\"" + filters +"\", max_photos: 1}); \
+    "var id = API.users.get()[0].id;\
+    var timezone = API.users.get({\"user_ids\":id, \"fields\":\"timezone\"})[0].timezone;\
+    var time = API.utils.getServerTime();\
+    var response = API.newsfeed.get({count:100, filters:\"" + filters +"\", max_photos: 1}); \
 var all_items = [response.items];\
 var offset = response.new_offset;\
 var from = response.new_from;\
@@ -61,12 +66,15 @@ while ( response.items.length>0 ){ \
   from = response.new_from;\
 } \
 \
-return all_items;"
+return [ all_items, time, timezone ];"
      }, generate_array_allFeedItems );
 
     function generate_array_allFeedItems( data ){
       con('In generate..');
-      
+      timeLastHashtagsRequest = { 'time': data.response[ 1 ], 
+        'timezone': data.response[ 2 ] };
+      data.response = data.response[ 0 ];
+
       if (data.response) {
         con('Items received.');
         con( data.response );
@@ -76,8 +84,11 @@ return all_items;"
         con( allFeedItems );
         parseFeed( allFeedItems );
         showFeedHashtags( 
-          allFeedItems.length, 
-          Object.keys( countPostWithHashtags ).length  
+          { countAllFeedItems: allFeedItems.length, 
+            countPostWithHashtags: Object.keys( countPostWithHashtags ).length,
+            time: timeLastHashtagsRequest.time,
+            timezone: timeLastHashtagsRequest.timezone 
+          }
         );
       }
       else {
@@ -182,21 +193,28 @@ return all_items;"
     return arrayHashtagsSorted;
   }
 
-  function showFeedHashtags( countAllFeedItems, _countPostWithHashtags, arrayHashtagsSorted ) {
-    
-    $('#response').append("<div>Постов было всего: "+ countAllFeedItems +
+  // function showFeedHashtags( countAllFeedItems, _countPostWithHashtags, arrayHashtagsSorted, time, timezone ) {
+  function showFeedHashtags( output ) {
+    // countAllFeedItems, _countPostWithHashtags, arrayHashtagsSorted, time, timezone 
+    var date = new Date( output.time * 1000 )
+    var hours = date.getHours(); // + output.timezone;
+    var minutes = date.getMinutes();
+
+    $('#response').append("<div class='hashtag_info' ><div>Постов было всего: "+ output.countAllFeedItems +
       "</div><div>Постов c хештегами: "+ 
-      _countPostWithHashtags +"</div>");
+      output.countPostWithHashtags +"</div>"+
+    "<div>Время сканирования: "+ date.getDate() +"."+ date.getMonth()+"."+date.getFullYear()+" в "
+    + hours + ":" + minutes + "</div></div>");
     
-    $('#response').append("<br><textarea cols= 60 rows=10></textarea>" );
+    $('#response').append("<br><textarea class='hashtag_info' cols= 60 rows=3></textarea></div>" );
     var el = $('#response>textarea');    
     
-    if ( arrayHashtagsSorted === undefined ) { // sort for create hashtag top
-      arrayHashtagsSorted = createHashtagsTop();
+    if ( output.arrayHashtagsSorted === undefined ) { // sort for create hashtag top
+      output.arrayHashtagsSorted = createHashtagsTop();
     }
 
-    con( arrayHashtagsSorted );
-    arrayHashtagsSorted.forEach( 
+    con( output.arrayHashtagsSorted );
+    output.arrayHashtagsSorted.forEach( 
       function( v, i) {
         el.append( i+1+'. '+v[1]+' '+v[0]+'\n' );
       }
@@ -205,10 +223,11 @@ return all_items;"
     putHashtagsToServer(
       { 
         uid: appUserId,
-        timezone: appUserTimeZone,
-        countAllFeedItems: countAllFeedItems, 
-        countPostWithHashtags: _countPostWithHashtags,
-        hashtags: JSON.stringify( arrayHashtagsSorted )
+        countAllFeedItems: output.countAllFeedItems, 
+        countPostWithHashtags: output.countPostWithHashtags,
+        hashtags: JSON.stringify( output.arrayHashtagsSorted ),
+        time: output.time,
+        timezone: output.timezone
       }
     );
   }

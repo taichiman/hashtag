@@ -9,10 +9,12 @@ class DashController < ApplicationController
 
   def show    
     r = Hashtag.last_hashtags( params[ :uid ] )
-    if r!=[]
+    if r != []
+      r = r[0]
       render json: { 
                     uid: r.uid, 
                     timezone: r.timezone,
+                    time: r.time,
                     count_posts: r.count_posts,
                     count_posts_with_hashtag: r.count_posts_with_hashtag,
                     hashtags: r.hashtags
@@ -24,11 +26,14 @@ class DashController < ApplicationController
 
   # save hashtags from client to db
   def create
-    hashtag = Hashtag.create( { uid: params[ :uid ] ,
-      timezone: params[:timezone],
-      count_posts: params[ :countAllFeedItems ],
-      count_posts_with_hashtag: params[ :countPostWithHashtags ],
-      hashtags: params[ :hashtags ] } )
+    hashtag = Hashtag.create( 
+        { uid: params[ :uid ],
+          count_posts: params[ :countAllFeedItems ],
+          count_posts_with_hashtag: params[ :countPostWithHashtags ],
+          hashtags: params[ :hashtags ],
+          time: params[ :time ],
+          timezone: params[:timezone]
+        });
     hashtag.save ? saved = true : saved = false
     render json: { saved: saved }
   end

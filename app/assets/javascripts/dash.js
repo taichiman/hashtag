@@ -11,7 +11,14 @@ function getHashtagsFromServerAndShow(){
         ).done( 
     function( r ) {
       if( r.result != false){
-        showFeedHashtags( r.count_posts, r.count_posts_with_hashtag, JSON.parse( r.hashtags ));
+        showFeedHashtags( 
+          { countAllFeedItems: r.count_posts,
+            countPostWithHashtags: r.count_posts_with_hashtag,
+            arrayHashtagsSorted: JSON.parse( r.hashtags ),
+            time: r.time,
+            timezone: r.timezone 
+          }
+        );
       }
       else{
         create_hashtag_top();
